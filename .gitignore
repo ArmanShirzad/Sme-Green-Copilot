@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+green-agent-env/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment
+.env
+.venv
+
+# Database
+*.sqlite
+*.db
+
+# Generated Files
+filled_*.pdf
+compliance_pack*.pdf
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary
+temp/
+tmp/
+uploads/
+outputs/
+
+# Docker
+docker-compose.override.yml
+
+# Node (if needed)
+node_modules/
+package-lock.json

@@ -1,0 +1,273 @@
+# Compliance Matrix for Green SME Compliance Co-Pilot
+# Maps system features to regulatory requirements
+
+regulations:
+  GDPR_Art30:
+    name: GDPR Article 30 - Record of Processing Activities
+    jurisdiction: EU
+    authority: European Data Protection Board
+    description: Controllers must maintain records of processing activities
+    
+    requirements:
+      - article: Art. 30(1)(a)
+        description: Name and contact details of controller
+        features:
+          - user_profile
+          - contact_management
+        evidence:
+          - art30_record.pdf
+          - user_profile.json
+      
+      - article: Art. 30(1)(b)
+        description: Purposes of processing
+        features:
+          - intent_detection
+          - purpose_mapping
+        evidence:
+          - processing_purposes.json
+      
+      - article: Art. 30(1)(c)
+        description: Categories of data subjects and personal data
+        features:
+          - data_category_mapping
+          - field_extraction
+        evidence:
+          - data_categories.json
+      
+      - article: Art. 30(1)(d)
+        description: Recipients of personal data
+        features:
+          - recipient_tracking
+        evidence:
+          - recipients_list.json
+      
+      - article: Art. 30(1)(f)
+        description: Security measures
+        features:
+          - security_documentation
+          - encryption_status
+        evidence:
+          - security_measures.pdf
+
+  CSRD_VSME:
+    name: CSRD Voluntary SME Standard
+    jurisdiction: EU
+    authority: EFRAG
+    description: Simplified sustainability reporting for SMEs
+    
+    requirements:
+      - standard: VSME E1
+        description: Energy consumption disclosure
+        features:
+          - energy_data_tracking
+          - consumption_calculation
+        evidence:
+          - vsme_snapshot.pdf
+          - energy_audit.json
+      
+      - standard: VSME E1
+        description: Scope 2 GHG emissions
+        features:
+          - emissions_calculation
+          - grid_factor_application
+        evidence:
+          - emissions_report.pdf
+          - calculation_methodology.json
+      
+      - standard: VSME E1
+        description: Sustainability actions
+        features:
+          - load_shift_recommendations
+          - optimization_tracking
+        evidence:
+          - action_plan.pdf
+      
+      - standard: General
+        description: Reporting period and methodology
+        features:
+          - timestamp_tracking
+          - methodology_documentation
+        evidence:
+          - vsme_snapshot.pdf
+
+  EU_AI_Act:
+    name: EU Artificial Intelligence Act
+    jurisdiction: EU
+    authority: European Commission
+    description: Regulation on harmonised rules on artificial intelligence
+    
+    requirements:
+      - article: Art. 13
+        description: Transparency obligations for limited-risk AI
+        features:
+          - system_card_generation
+          - user_notification
+          - ai_disclosure
+        evidence:
+          - system_card.pdf
+          - transparency_log.json
+      
+      - article: Art. 52
+        description: Transparency obligations for certain AI systems
+        features:
+          - interaction_logging
+          - ai_indicator
+        evidence:
+          - interaction_logs.json
+      
+      - annex: Annex IV
+        description: Technical documentation
+        features:
+          - model_documentation
+          - training_data_info
+          - system_architecture
+        evidence:
+          - technical_docs.pdf
+          - compliance_pack.pdf
+      
+      - article: Art. 10
+        description: Data governance
+        features:
+          - data_quality_checks
+          - bias_monitoring
+        evidence:
+          - data_governance.json
+      
+      - article: Art. 14
+        description: Human oversight
+        features:
+          - approval_workflow
+          - human_review_gates
+        evidence:
+          - approval_logs.json
+
+  ESRS_E1:
+    name: European Sustainability Reporting Standards - E1 Climate Change
+    jurisdiction: EU
+    authority: EFRAG
+    description: Climate-related disclosures
+    
+    requirements:
+      - topic: E1-5
+        description: Energy consumption and mix
+        features:
+          - energy_tracking
+          - renewable_split
+        evidence:
+          - energy_breakdown.json
+      
+      - topic: E1-6
+        description: Gross Scope 1, 2, 3 GHG emissions
+        features:
+          - emissions_calculation
+          - scope_breakdown
+        evidence:
+          - ghg_inventory.json
+      
+      - topic: E1-9
+        description: GHG reduction targets
+        features:
+          - target_tracking
+          - action_planning
+        evidence:
+          - reduction_plan.pdf
+
+  GDPR_General:
+    name: General Data Protection Regulation
+    jurisdiction: EU
+    authority: European Data Protection Board
+    description: General data protection obligations
+    
+    requirements:
+      - article: Art. 5
+        description: Principles relating to processing
+        features:
+          - purpose_limitation
+          - data_minimization
+          - accuracy_checks
+        evidence:
+          - processing_principles.json
+      
+      - article: Art. 13
+        description: Information to be provided
+        features:
+          - privacy_notice
+          - user_information
+        evidence:
+          - privacy_notice.pdf
+      
+      - article: Art. 32
+        description: Security of processing
+        features:
+          - encryption
+          - access_controls
+          - audit_logging
+        evidence:
+          - security_measures.pdf
+          - audit_trail.json
+
+system_features:
+  user_profile:
+    description: Store and manage user/company information
+    regulations:
+      - GDPR_Art30
+      - GDPR_General
+    data_protection: true
+  
+  energy_data_tracking:
+    description: Track and store energy consumption data
+    regulations:
+      - CSRD_VSME
+      - ESRS_E1
+    data_protection: false
+  
+  emissions_calculation:
+    description: Calculate GHG emissions from energy data
+    regulations:
+      - CSRD_VSME
+      - ESRS_E1
+    data_protection: false
+  
+  intent_detection:
+    description: NLP-based user intent detection
+    regulations:
+      - GDPR_Art30
+      - EU_AI_Act
+    data_protection: true
+  
+  system_card_generation:
+    description: Generate AI system transparency documentation
+    regulations:
+      - EU_AI_Act
+    data_protection: false
+  
+  audit_logging:
+    description: Track all system actions for compliance
+    regulations:
+      - GDPR_General
+      - EU_AI_Act
+      - GDPR_Art30
+    data_protection: true
+  
+  approval_workflow:
+    description: Human-in-the-loop approval gates
+    regulations:
+      - EU_AI_Act
+    data_protection: false
+
+evidence_generation:
+  automatic:
+    - audit_trail.json
+    - interaction_logs.json
+    - calculation_methodology.json
+    - transparency_log.json
+  
+  on_demand:
+    - art30_record.pdf
+    - vsme_snapshot.pdf
+    - system_card.pdf
+    - compliance_pack.pdf
+  
+  manual:
+    - privacy_notice.pdf
+    - technical_docs.pdf

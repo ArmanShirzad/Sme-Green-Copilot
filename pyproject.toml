@@ -1,0 +1,32 @@
+[project]
+name = "green-sme-compliance-copilot"
+version = "0.1.0"
+description = "AI agent for automating ESG audits and CSRD/GDPR filings for SMEs"
+authors = [
+    {name = "Green SME Team", email = "team@greensme.ai"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.3",
+    "black>=23.12.1",
+    "ruff>=0.1.9",
+    "mypy>=1.8.0",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py310', 'py311', 'py312']
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false

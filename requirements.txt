@@ -1,0 +1,44 @@
+# Green SME Compliance Co-Pilot - Python Dependencies
+# Install: pip install -r requirements.txt
+
+# Core Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.3
+python-dotenv==1.0.0
+
+# Database
+sqlalchemy==2.0.25
+
+# ML & Embeddings
+sentence-transformers==2.3.1
+faiss-cpu==1.7.4
+torch==2.1.2
+
+# PDF Processing
+pypdf==4.0.1
+pdfminer.six==20231228
+reportlab==4.0.9
+pytesseract==0.3.10
+Pillow==10.2.0
+
+# OCR (requires system install: apt-get install tesseract-ocr)
+# brew install tesseract (macOS)
+
+# Optional: LangChain & AI
+langchain==0.1.4
+langchain-community==0.0.19
+mistralai==0.0.12
+
+# Utilities
+requests==2.31.0
+python-multipart==0.0.6
+aiofiles==23.2.1
+pyyaml==6.0.1
+
+# Data Processing
+pandas==2.2.0
+numpy==1.26.3
+
+# Validation
+email-validator==2.1.0

@@ -1,0 +1,266 @@
+# Workflow Recipes for Green SME Compliance Co-Pilot
+# Defines step-by-step procedures for different compliance tasks
+
+workflows:
+  csrd_energy_audit:
+    id: csrd_energy_audit
+    name: CSRD Energy Audit & VSME Snapshot
+    description: Generate CSRD voluntary SME standard sustainability report with energy audit
+    intent: energyAuditForCSRD
+    forms:
+      - vsme_snapshot
+      - disclosure_letter
+    steps:
+      - name: collect_energy_data
+        tool: getUserProfile
+        description: Fetch user's energy consumption history
+        required_slots:
+          - userId
+      
+      - name: detect_missing_data
+        tool: collectAnswers
+        description: Ask for missing energy data if not in database
+        conditional: missing_kwh
+      
+      - name: calculate_emissions
+        tool: estimateEmissions
+        description: Calculate Scope 2 CO2 emissions from energy consumption
+        inputs:
+          - kWh
+          - gridFactor
+        outputs:
+          - tCO2e
+          - breakdown
+      
+      - name: get_weather_insights
+        tool: getWeatherInsight
+        description: Fetch weather data for solar potential analysis
+        inputs:
+          - city
+        outputs:
+          - sunHours
+          - recommendation
+      
+      - name: suggest_load_shift
+        tool: suggestLoadShift
+        description: Generate energy optimization recommendations
+        inputs:
+          - kWhProfile
+          - weatherHint
+        outputs:
+          - recommendations
+          - potentialSavings
+      
+      - name: fill_vsme_form
+        tool: fillPdf
+        description: Fill CSRD VSME snapshot template
+        inputs:
+          - formId: vsme_snapshot
+          - fieldValues
+        outputs:
+          - docId
+          - filePath
+      
+      - name: generate_compliance_pack
+        tool: generateCompliancePack
+        description: Create compliance documentation bundle
+        inputs:
+          - submissionId
+          - regulations: [CSRD, VSME, ESRS_E1]
+        outputs:
+          - packId
+          - filePath
+      
+      - name: export_and_email
+        tool: emailFile
+        description: Send documents to user
+        inputs:
+          - docId
+          - recipient
+        outputs:
+          - status
+    
+    estimated_time: 15-20 minutes
+    regulations:
+      - CSRD
+      - VSME
+      - ESRS_E1
+    
+    success_criteria:
+      - vsme_snapshot_generated
+      - emissions_calculated
+      - compliance_pack_created
+
+  gdpr_art30_export:
+    id: gdpr_art30_export
+    name: GDPR Article 30 Record Export
+    description: Generate GDPR Article 30 Record of Processing Activities
+    intent: gdprArt30Export
+    forms:
+      - gdpr_art30
+    steps:
+      - name: collect_processing_details
+        tool: collectAnswers
+        description: Gather information about data processing activities
+        questions:
+          - What are the purposes of data processing?
+          - What categories of personal data do you process?
+          - Who are the recipients of personal data?
+          - What is your data retention period?
+          - What security measures are in place?
+      
+      - name: map_legal_bases
+        tool: detectIntent
+        description: Infer legal bases for processing
+        outputs:
+          - legalBases
+      
+      - name: fill_art30_form
+        tool: fillPdf
+        description: Fill GDPR Article 30 template
+        inputs:
+          - formId: gdpr_art30
+          - fieldValues
+        outputs:
+          - docId
+      
+      - name: generate_compliance_pack
+        tool: generateCompliancePack
+        description: Create GDPR compliance bundle
+        inputs:
+          - submissionId
+          - regulations: [GDPR, Art30]
+        outputs:
+          - packId
+      
+      - name: export_and_email
+        tool: emailFile
+        description: Deliver documentation
+        inputs:
+          - docId
+          - recipient
+    
+    estimated_time: 10-15 minutes
+    regulations:
+      - GDPR
+      - Art30
+    
+    success_criteria:
+      - art30_record_generated
+      - legal_bases_documented
+
+  eu_ai_act_risk:
+    id: eu_ai_act_risk
+    name: EU AI Act Risk Assessment
+    description: Assess AI system risk category and generate compliance documentation
+    intent: euAiActRisk
+    forms:
+      - eu_ai_act_risk
+    steps:
+      - name: collect_system_details
+        tool: collectAnswers
+        description: Gather AI system information
+        questions:
+          - What is the name of your AI system?
+          - What is its primary purpose?
+          - Does it interact with natural persons?
+          - Does it make automated decisions?
+      
+      - name: classify_risk_category
+        tool: detectIntent
+        description: Classify system based on EU AI Act Annex III
+        outputs:
+          - riskCategory
+          - highRiskCriteria
+      
+      - name: check_prohibited_practices
+        tool: detectIntent
+        description: Check against prohibited AI practices
+        outputs:
+          - prohibitedPractices
+      
+      - name: fill_risk_form
+        tool: fillPdf
+        description: Fill risk assessment template
+        inputs:
+          - formId: eu_ai_act_risk
+          - fieldValues
+        outputs:
+          - docId
+      
+      - name: generate_system_card
+        tool: generateCompliancePack
+        description: Create AI system transparency card
+        inputs:
+          - submissionId
+          - regulations: [EU_AI_Act, Transparency]
+        outputs:
+          - systemCard
+      
+      - name: export_and_email
+        tool: emailFile
+        description: Deliver risk assessment
+        inputs:
+          - docId
+          - recipient
+    
+    estimated_time: 20-25 minutes
+    regulations:
+      - EU_AI_Act
+      - Annex_III
+    
+    success_criteria:
+      - risk_classification_complete
+      - system_card_generated
+      - transparency_documented
+
+  energy_optimization:
+    id: energy_optimization
+    name: Energy Optimization Recommendations
+    description: Analyze energy usage and provide optimization recommendations
+    intent: energyOptimization
+    forms: []
+    steps:
+      - name: analyze_energy_profile
+        tool: getUserProfile
+        description: Fetch historical energy data
+        outputs:
+          - kWhProfile
+      
+      - name: get_weather_forecast
+        tool: getWeatherInsight
+        description: Get weather data for optimization
+        inputs:
+          - city
+        outputs:
+          - sunHours
+          - temperature
+      
+      - name: suggest_load_shifts
+        tool: suggestLoadShift
+        description: Generate load-shifting recommendations
+        inputs:
+          - kWhProfile
+          - weatherHint
+        outputs:
+          - recommendations
+          - potentialSavings
+      
+      - name: calculate_savings
+        tool: estimateEmissions
+        description: Calculate potential emissions reduction
+        outputs:
+          - savingsPotential
+      
+      - name: generate_report
+        tool: fillPdf
+        description: Create optimization report
+        outputs:
+          - reportId
+    
+    estimated_time: 5-10 minutes
+    regulations: []
+    
+    success_criteria:
+      - recommendations_generated
+      - savings_calculated
