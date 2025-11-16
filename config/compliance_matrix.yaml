@@ -1,0 +1,104 @@
+recipes:
+  csrd_audit:
+    name: "CSRD Energy Audit"
+    description: "Energy audit for CSRD VSME compliance"
+    forms:
+      - vsme_snapshot
+      - disclosure_letter
+    regulations:
+      - CSRD
+      - ESRS E1
+    steps:
+      - detectIntent
+      - estimateEmissions
+      - fillPdf
+      - generateCompliancePack
+  
+  gdpr_art30:
+    name: "GDPR Article 30 Export"
+    description: "Generate GDPR Art.30 processing record"
+    forms:
+      - gdpr_art30_record
+    regulations:
+      - GDPR Art.30
+    steps:
+      - detectIntent
+      - mapFields
+      - collectAnswers
+      - fillPdf
+      - generateCompliancePack
+  
+  ai_act_check:
+    name: "EU AI Act Risk Check"
+    description: "Assess AI system risks per EU AI Act"
+    forms:
+      - ai_act_risk_worksheet
+    regulations:
+      - EU AI Act
+    steps:
+      - detectIntent
+      - mapFields
+      - fillPdf
+      - generateCompliancePack
+
+regulations:
+  CSRD:
+    name: "Corporate Sustainability Reporting Directive"
+    articles:
+      - "VSME Standard"
+      - "ESRS E1 - Climate"
+    requirements:
+      - energy_consumption_reporting
+      - scope_2_emissions
+      - methodology_disclosure
+  
+  "GDPR Art.30":
+    name: "GDPR Article 30 - Records of Processing Activities"
+    articles:
+      - "Art.30(1) - Controller obligations"
+      - "Art.30(2) - Processor obligations"
+    requirements:
+      - controller_details
+      - processing_purposes
+      - data_categories
+      - recipients
+      - retention_periods
+      - security_measures
+  
+  "EU AI Act":
+    name: "EU Artificial Intelligence Act"
+    articles:
+      - "Art.13 - Transparency obligations"
+      - "Annex III - High-risk AI systems"
+    requirements:
+      - system_card
+      - risk_assessment
+      - human_oversight
+      - transparency_logs
+
+field_mappings:
+  canonical_fields:
+    postalCode:
+      synonyms: ["postal code", "zip", "plz", "postcode", "postal"]
+      type: "string"
+      required: true
+    
+    streetAddress:
+      synonyms: ["street", "address", "strasse", "adresse", "street address"]
+      type: "string"
+      required: true
+    
+    tCO2e:
+      synonyms: ["co2", "emissions", "carbon", "tco2", "co2 equivalent"]
+      type: "number"
+      required: false
+    
+    kWh:
+      synonyms: ["kilowatt", "energy", "consumption", "kwh", "kilowatt hour"]
+      type: "number"
+      required: false
+    
+    companyName:
+      synonyms: ["company", "firm", "name", "unternehmen", "organization"]
+      type: "string"
+      required: true
