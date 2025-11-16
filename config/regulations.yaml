@@ -1,0 +1,81 @@
+regulations:
+  GDPR:
+    articles:
+      - id: "Art.30"
+        name: "Records of Processing Activities"
+        requirements:
+          - "Controller details"
+          - "Processing purposes"
+          - "Data categories"
+          - "Recipients"
+          - "Retention periods"
+          - "Transfers"
+          - "Security measures"
+        form_fields:
+          - controller_name
+          - controller_address
+          - processing_purposes
+          - data_categories
+          - recipients
+          - retention_period
+          - transfers
+          - security_measures
+      - id: "Art.32"
+        name: "Security of Processing"
+        requirements:
+          - "Technical measures"
+          - "Organizational measures"
+    compliance_pack_sections:
+      - "GDPR Art.30 Record"
+      - "Security Documentation"
+
+  CSRD:
+    standards:
+      - id: "ESRS E1"
+        name: "Climate Change"
+        requirements:
+          - "Energy consumption"
+          - "Scope 2 emissions"
+          - "Methodology"
+          - "Reduction actions"
+        form_fields:
+          - energy_consumption_kwh
+          - scope2_emissions_tco2e
+          - methodology
+          - reduction_actions
+      - id: "VSME"
+        name: "Voluntary SME Standard"
+        requirements:
+          - "Energy use disclosure"
+          - "Emissions snapshot"
+          - "Action plan"
+    compliance_pack_sections:
+      - "VSME Snapshot"
+      - "ESRS E1 Disclosure"
+
+  EU_AI_ACT:
+    articles:
+      - id: "Art.6"
+        name: "Classification of AI Systems"
+        requirements:
+          - "Risk classification"
+          - "Annex III assessment"
+      - id: "Art.13"
+        name: "Transparency Obligations"
+        requirements:
+          - "System card"
+          - "Logging"
+          - "Documentation"
+    annex_iii_high_risk:
+      - "Biometric identification"
+      - "Critical infrastructure"
+      - "Education and training"
+      - "Employment"
+      - "Access to essential services"
+      - "Law enforcement"
+      - "Migration and border control"
+      - "Administration of justice"
+    compliance_pack_sections:
+      - "Risk Assessment"
+      - "System Card"
+      - "Transparency Log"
