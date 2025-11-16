@@ -1,0 +1,80 @@
+recipes:
+  csrd_audit:
+    name: "CSRD Energy Audit"
+    description: "Complete CSRD VSME snapshot with energy audit data"
+    intent_patterns:
+      - "energy audit"
+      - "CSRD"
+      - "emissions"
+      - "carbon footprint"
+    needed_forms:
+      - vsme_snapshot
+      - disclosure_letter
+    workflow:
+      - step: "collect_energy_data"
+        tool: "estimateEmissions"
+      - step: "fill_vsme_form"
+        tool: "fillPdf"
+        form: "vsme_snapshot"
+      - step: "generate_compliance_pack"
+        tool: "generateCompliancePack"
+    regulations:
+      - "CSRD"
+      - "ESRS E1"
+      - "VSME Standard"
+    output_types:
+      - pdf
+      - email
+
+  gdpr_art30:
+    name: "GDPR Article 30 Export"
+    description: "Generate GDPR Article 30 processing record"
+    intent_patterns:
+      - "GDPR"
+      - "Article 30"
+      - "data processing"
+      - "privacy record"
+    needed_forms:
+      - gdpr_art30_record
+    workflow:
+      - step: "collect_processing_data"
+        tool: "collectAnswers"
+      - step: "fill_gdpr_form"
+        tool: "fillPdf"
+        form: "gdpr_art30_record"
+      - step: "generate_compliance_pack"
+        tool: "generateCompliancePack"
+    regulations:
+      - "GDPR Art. 30"
+      - "GDPR Art. 32"
+    output_types:
+      - pdf
+      - email
+
+  eu_ai_act_risk:
+    name: "EU AI Act Risk Check"
+    description: "Assess AI system risks per EU AI Act requirements"
+    intent_patterns:
+      - "AI Act"
+      - "AI risk"
+      - "high-risk AI"
+      - "AI compliance"
+    needed_forms:
+      - ai_act_risk_worksheet
+      - system_card
+    workflow:
+      - step: "classify_ai_system"
+        tool: "classifyAIRisk"
+      - step: "fill_risk_worksheet"
+        tool: "fillPdf"
+        form: "ai_act_risk_worksheet"
+      - step: "generate_system_card"
+        tool: "generateSystemCard"
+      - step: "generate_compliance_pack"
+        tool: "generateCompliancePack"
+    regulations:
+      - "EU AI Act"
+      - "Annex III"
+    output_types:
+      - pdf
+      - email
