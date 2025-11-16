@@ -1,0 +1,53 @@
+Green SME CoPilot — Agentic AI for Agenthathon
+============================================
+
+Purpose
+-------
+Green SME CoPilot is an agentic AI prototype built for Agenthathon to help small and medium enterprises (SMEs)
+adopt sustainable practices. It demonstrates autonomous task orchestration, context-aware recommendations,
+and human-in-the-loop governance for energy, waste, and supply-chain optimizations.
+
+Key Capabilities
+----------------
+- Autonomous task planning: break down high-level sustainability goals into actionable tasks.
+- Multi-step execution: chain tools and APIs to collect data, analyze, and propose interventions.
+- Explainability: produce human-readable rationales and step logs for auditability.
+- Safety & governance: human approval gates, rate limits, and reversible actions.
+- Integrations: hooks for telemetry, ERP, energy meters, Google Sheets, and public sustainability APIs.
+
+Architecture Overview
+---------------------
+- Orchestrator: agent planner that sequences skills and sub-agents.
+- Skills: modular actions (data fetchers, analyzers, recommenders, reporters).
+- Tools: external connectors (APIs, databases, sheet/backends).
+- Policy Layer: safety rules, approval workflows, and audit logging.
+- UI/CLI: minimal control surface for operators to review and approve actions.
+
+Getting Started (dev)
+---------------------
+1. Clone the project and open in dev container (Ubuntu 24.04).
+2. Install dependencies described in project README (Python/Node tooling as applicable).
+3. Configure .env with API keys and test endpoints.
+4. Start the orchestrator in dev mode, attach a mock toolset, and run sample scenarios.
+5. Use human-approval endpoint to step through agent actions.
+
+Safety & Ethics
+--------------
+- Designed for human oversight: every impactful action requires explicit operator approval.
+- Rate-limited and permission-scoped integrations to avoid unsafe operations.
+- Logs and explanations stored for audit and compliance reviews.
+
+Contribution
+------------
+- Keep skills small and single-purpose.
+- Write unit tests for each skill and integration.
+- Document data sources and assumptions for every recommendation.
+
+License & Contact
+-----------------
+- Default: MIT (adjust as needed).
+- For Agenthathon demo questions: contact the team lead listed in project metadata.
+
+Notes
+-----
+This file (desc.txt) is a short project description intended for Agenthathon submission and developer onboarding.
