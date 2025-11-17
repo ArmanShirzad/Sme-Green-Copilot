@@ -76,7 +76,7 @@ Edit `.env` and add your API keys:
 ```
 DB_PATH=db.sqlite
 OPENWEATHER_API_KEY=your_openweather_api_key_here
-MISTRAL_API_KEY=your_mistral_api_key_here  # Optional
+GROQ_API_KEY=your_groq_api_key_here  # Optional
 N8N_WEBHOOK_URL=http://localhost:5678/webhook/compliance-email  # Optional
 ```
 
@@ -259,7 +259,7 @@ If SQLite shows "database is locked", ensure only one process is accessing the d
 
 ## Limitations (MVP)
 
-- Mock LLM responses if Mistral API key not configured
+- Mock LLM responses if Groq API key not configured
 - Simplified form filling (ReportLab-based, not true PDF form filling)
 - Basic OCR (Tesseract fallback if PDF text extraction fails)
 - Local file storage (MinIO integration optional)

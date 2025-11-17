@@ -6,6 +6,7 @@ import os
 import sqlite3
 import json
 import random
+import base64
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
@@ -22,6 +23,11 @@ from utils import (
     classify_ai_risk
 )
 
+# Import new core components
+from app.core.pdf_parser import PDFParser
+from app.core.pdf_filler import PDFFiller
+from app.core.llm_service import LLMService
+
 load_dotenv()
 
 # Initialize models
@@ -34,6 +40,11 @@ except Exception as e:
     print(f"Warning: Could not load embedding model: {e}")
     embed_model = None
     index = None
+
+# Initialize core services
+pdf_parser = PDFParser(embed_model=embed_model)
+pdf_filler = PDFFiller(use_handwriting_font=False)
+llm_service = LLMService()
 
 app = FastAPI(
     title="Green SME Compliance Co-Pilot",
@@ -102,72 +113,29 @@ async def root():
             "/tools/exportFile",
             "/tools/emailFile",
             "/tools/generateCompliancePack",
-            "/tools/classifyAIRisk"
+            "/tools/classifyAIRisk",
+            "/tools/inferRegulatoryData"
         ]
     }
 
 @app.post("/tools/detectIntent")
 async def detect_intent(body: IntentRequest = Body(...)):
-    """Detect user intent from chat input using pattern matching and LLM."""
-    text = body.text.lower()
+    """Detect user intent from chat input using LLM service."""
+    # Use LLM service for intent classification
+    result = llm_service.classify_intent_and_slots(body.text)
     
-    # Pattern matching (fallback if LLM unavailable)
-    intent_patterns = {
-        "energyAuditForCSRD": ["energy audit", "csrd", "emissions", "carbon", "kwh", "kilowatt"],
-        "gdprArt30": ["gdpr", "article 30", "data processing", "privacy record"],
-        "euAiActRisk": ["ai act", "ai risk", "high-risk ai", "ai compliance", "artificial intelligence"]
-    }
-    
-    detected_intent = None
-    confidence = 0.7
-    slots = {}
-    
-    for intent, patterns in intent_patterns.items():
-        matches = sum(1 for pattern in patterns if pattern in text)
-        if matches > 0:
-            detected_intent = intent
-            confidence = min(0.95, 0.7 + (matches * 0.1))
-            
-            # Extract slots
-            import re
-            kwh_match = re.search(r'(\d+)\s*(kwh|kilowatt)', text)
-            if kwh_match:
-                slots['kWh'] = float(kwh_match.group(1))
-            
-            city_match = re.search(r'\b([A-Z][a-z]+)\b', text)
-            if city_match:
-                slots['city'] = city_match.group(1)
-            
-            break
-    
-    # Try Mistral API if available
-    mistral_key = os.getenv('MISTRAL_API_KEY')
-    if mistral_key and mistral_key != 'your_mistral_api_key_here':
-        try:
-            from mistralai import Mistral
-            client = Mistral(api_key=mistral_key)
-            response = client.chat.complete(
-                model="mistral-tiny",
-                messages=[{
-                    "role": "user",
-                    "content": f"Extract intent and slots from: {body.text}. Respond with JSON: intentType, slots (kWh, city), confidence."
-                }]
-            )
-            # Parse response (simplified)
-            if response and hasattr(response, 'choices'):
-                # Update with LLM results if better
-                pass
-        except Exception as e:
-            print(f"Mistral API error: {e}")
-    
-    if not detected_intent:
-        detected_intent = "general"
-        confidence = 0.5
+    # Ensure required fields
+    if 'intentType' not in result:
+        result['intentType'] = "general"
+    if 'slots' not in result:
+        result['slots'] = {}
+    if 'confidence' not in result:
+        result['confidence'] = 0.5
     
     return {
-        "intentType": detected_intent,
-        "slots": slots,
-        "confidence": round(confidence, 2)
+        "intentType": result['intentType'],
+        "slots": result['slots'],
+        "confidence": round(result.get('confidence', 0.5), 2)
     }
 
 @app.post("/tools/selectWorkflow")
@@ -208,70 +176,26 @@ async def select_workflow(body: WorkflowRequest = Body(...)):
 
 @app.post("/tools/mapFields")
 async def map_fields(body: MapFieldsRequest = Body(...)):
-    """Map form fields to user data using semantic similarity."""
-    if not embed_model or not index:
-        # Fallback: simple keyword matching
-        field_values = {}
-        low_confidence = []
-        
-        user_data = body.userData
-        slots = body.slots
-        
-        for label in body.labels:
-            label_lower = label.lower()
-            if 'name' in label_lower or 'company' in label_lower:
-                field_values['name'] = user_data.get('name', 'Prime Bakery')
-            elif 'address' in label_lower:
-                field_values['address'] = user_data.get('address', 'Flensburg St 1, 24937 Flensburg')
-            elif 'email' in label_lower:
-                field_values['email'] = user_data.get('email', 'info@bakery.de')
-            elif 'kwh' in label_lower or 'energy' in label_lower:
-                field_values['energy_kwh'] = slots.get('kWh', 3000)
-            elif 'emission' in label_lower or 'co2' in label_lower or 'carbon' in label_lower:
-                if 'kWh' in slots:
-                    emissions = calculate_emissions(slots['kWh'])
-                    field_values['tCO2e'] = emissions['tCO2e']
-        
-        return {
-            "fieldValues": field_values,
-            "lowConfidence": low_confidence
-        }
-    
-    # Semantic matching with embeddings
+    """Map form fields to user data using semantic similarity and LLM."""
     try:
-        label_embeddings = embed_model.encode(body.labels, show_progress_bar=False)
-        faiss.normalize_L2(label_embeddings.astype('float32'))
+        # Use PDF parser for semantic mapping
+        result = pdf_parser.semantic_field_mapping(
+            body.labels,
+            body.userData or {},
+            body.slots or {}
+        )
         
-        # Query against indexed forms (simplified - in production, query pre-indexed canonicals)
-        field_values = {}
-        low_confidence = []
+        # Optionally use LLM to infer missing values
+        if llm_service.client:
+            inferred = llm_service.infer_field_values(body.labels, {
+                **(body.userData or {}),
+                **(body.slots or {})
+            })
+            # Merge inferred values
+            if inferred:
+                result['fieldValues'].update(inferred)
         
-        # Map based on semantic similarity and user data
-        user_data = body.userData
-        slots = body.slots
-        
-        # Simple mapping logic
-        for i, label in enumerate(body.labels):
-            label_lower = label.lower()
-            if any(kw in label_lower for kw in ['name', 'company', 'organization']):
-                field_values['name'] = user_data.get('name', 'Prime Bakery')
-            elif any(kw in label_lower for kw in ['address', 'street', 'location']):
-                field_values['address'] = user_data.get('address', 'Flensburg St 1, 24937 Flensburg')
-            elif 'email' in label_lower:
-                field_values['email'] = user_data.get('email', 'info@bakery.de')
-            elif any(kw in label_lower for kw in ['kwh', 'kilowatt', 'energy consumption']):
-                field_values['energy_kwh'] = slots.get('kWh', 3000)
-            elif any(kw in label_lower for kw in ['emission', 'co2', 'carbon', 'tco2e']):
-                if 'kWh' in slots:
-                    emissions = calculate_emissions(slots['kWh'])
-                    field_values['tCO2e'] = emissions['tCO2e']
-                else:
-                    low_confidence.append(label)
-        
-        return {
-            "fieldValues": field_values,
-            "lowConfidence": low_confidence
-        }
+        return result
     except Exception as e:
         print(f"Error in mapFields: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -288,51 +212,59 @@ async def estimate_emissions(body: EmissionsRequest = Body(...)):
 
 @app.post("/tools/fillPdf")
 async def fill_pdf(body: FillPdfRequest = Body(...)):
-    """Fill PDF form with field values."""
+    """Fill PDF form with field values using true PDF form filling."""
     form_id = body.formId
     values = body.fieldValues
     
-    # Create output directory if needed
-    os.makedirs('outputs', exist_ok=True)
+    # Find template path
+    template_path = f"templates/{form_id}.pdf"
+    if not os.path.exists(template_path):
+        # Try alternative paths
+        alternatives = [
+            f"templates/{form_id}_template.pdf",
+            f"templates/{form_id}_record.pdf",
+            f"templates/{form_id}_worksheet.pdf",
+        ]
+        for alt in alternatives:
+            if os.path.exists(alt):
+                template_path = alt
+                break
+        else:
+            raise HTTPException(status_code=404, detail=f"Template not found for form: {form_id}")
     
-    pdf_path = f"outputs/filled_{form_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-    c = canvas.Canvas(pdf_path, pagesize=A4)
-    width, height = A4
-    
-    y = height - 50
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(50, y, f"Form: {form_id}")
-    y -= 30
-    
-    c.setFont("Helvetica", 12)
-    for key, value in values.items():
-        if y < 50:
-            c.showPage()
-            y = height - 50
+    try:
+        # Use PDF filler for true form filling
+        output_path = pdf_filler.fill_pdf_form(template_path, values)
         
-        c.drawString(50, y, f"{key}: {value}")
-        y -= 20
-    
-    c.save()
-    
-    return {
-        "docId": pdf_path,
-        "formId": form_id,
-        "status": "filled"
-    }
+        return {
+            "docId": output_path,
+            "formId": form_id,
+            "status": "filled",
+            "method": "true_form_filling"
+        }
+    except Exception as e:
+        print(f"Error filling PDF: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to fill PDF: {str(e)}")
 
 @app.post("/tools/parseForm")
 async def parse_form(body: ParseFormRequest = Body(...)):
-    """Parse PDF form to extract field labels."""
-    from ingest import extract_form_fields
+    """Parse PDF form to extract field labels using enhanced parser."""
+    if not os.path.exists(body.pdfPath):
+        raise HTTPException(status_code=404, detail=f"PDF not found: {body.pdfPath}")
     
-    result = extract_form_fields(body.pdfPath, use_ocr=True)
-    
-    return {
-        "labels": result['labels'],
-        "textContent": result['text_content'],
-        "pageCount": result['page_count']
-    }
+    try:
+        result = pdf_parser.extract_form_fields(body.pdfPath, use_ocr=True)
+        
+        return {
+            "labels": result.get('labels', []),
+            "fields": result.get('fields', []),
+            "textContent": result.get('text_content', ''),
+            "pageCount": result.get('page_count', 0),
+            "hasFormFields": result.get('has_form_fields', False)
+        }
+    except Exception as e:
+        print(f"Error parsing form: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to parse PDF: {str(e)}")
 
 @app.post("/tools/collectAnswers")
 async def collect_answers(body: CollectAnswersRequest = Body(...)):
@@ -384,20 +316,35 @@ async def email_file(body: Dict = Body(...)):
         raise HTTPException(status_code=404, detail="File not found")
     
     # Trigger n8n webhook
-    if n8n_webhook and n8n_webhook != 'http://localhost:5678/webhook/compliance-email':
+    if n8n_webhook:
         try:
+            # Read file and encode as base64 for n8n
+            with open(file_path, 'rb') as f:
+                file_content = f.read()
+                file_base64 = base64.b64encode(file_content).decode('utf-8')
+            
+            file_name = os.path.basename(file_path)
+            
             response = requests.post(n8n_webhook, json={
                 "filePath": file_path,
+                "fileName": file_name,
+                "fileContent": file_base64,
                 "recipient": recipient,
                 "subject": "Compliance Document",
                 "body": "Please find attached your compliance document."
-            }, timeout=10)
+            }, timeout=30)
+            response.raise_for_status()
             return {
                 "status": "sent",
+                "recipient": recipient,
+                "filePath": file_path,
                 "n8nResponse": response.status_code
             }
-        except Exception as e:
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
+        except requests.exceptions.RequestException as e:
             print(f"n8n webhook error: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to send email via n8n: {str(e)}")
     
     # Fallback: mock response
     return {
@@ -439,7 +386,29 @@ async def classify_ai_risk_endpoint(body: Dict = Body(...)):
     if not description:
         raise HTTPException(status_code=400, detail="Description required")
     
+    # Try LLM service first for better reasoning
+    if llm_service.client:
+        try:
+            llm_result = llm_service.infer_regulatory_data(description, "EU_AI_ACT")
+            if llm_result and 'risk_level' in llm_result:
+                return llm_result
+        except Exception as e:
+            print(f"LLM classification error: {e}")
+    
+    # Fallback to rule-based classification
     result = classify_ai_risk(description)
+    return result
+
+@app.post("/tools/inferRegulatoryData")
+async def infer_regulatory_data(body: Dict = Body(...)):
+    """Infer regulatory data from description using LLM."""
+    description = body.get('description', '')
+    regulation = body.get('regulation', 'GDPR')
+    
+    if not description:
+        raise HTTPException(status_code=400, detail="Description required")
+    
+    result = llm_service.infer_regulatory_data(description, regulation)
     return result
 
 @app.get("/health")

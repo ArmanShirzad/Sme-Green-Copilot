@@ -52,7 +52,7 @@ Complete implementation of an AI agent system for automating ESG audits and comp
 
 ### 1. Intent Detection
 - Pattern matching for common intents
-- Optional Mistral AI integration for advanced detection
+- Optional Groq API integration for advanced detection
 - Slot extraction (kWh, city, etc.)
 
 ### 2. Workflow Selection
@@ -88,7 +88,7 @@ Complete implementation of an AI agent system for automating ESG audits and comp
 - **PDF Processing**: PyPDF, ReportLab, Tesseract OCR
 - **Database**: SQLite
 - **Configuration**: YAML
-- **Optional Integrations**: Mistral AI, OpenWeather API, n8n, MinIO
+- **Optional Integrations**: Groq API, OpenWeather API, n8n, MinIO
 
 ## Setup Time Estimate
 
@@ -109,7 +109,7 @@ Complete implementation of an AI agent system for automating ESG audits and comp
 
 1. **Form Filling**: Uses ReportLab canvas (not true PDF form filling)
 2. **OCR**: Basic Tesseract integration (may need pdf2image for better results)
-3. **LLM**: Mock responses if Mistral API key not configured
+3. **LLM**: Mock responses if Groq API key not configured
 4. **Storage**: Local file system (MinIO integration optional)
 5. **Email**: Requires n8n setup for actual sending
 
@@ -118,7 +118,7 @@ Complete implementation of an AI agent system for automating ESG audits and comp
 Potential enhancements:
 - True PDF form filling with PyPDF2/form libraries
 - Advanced OCR with pdf2image
-- Full Mistral AI integration
+- Full Groq API integration
 - Additional regulatory frameworks
 - Fine-tuned embeddings for better field matching
 - Evidence folder generation
@@ -166,7 +166,7 @@ Tests cover:
 - faiss-cpu (vector search)
 - PyPDF, ReportLab (PDF processing)
 - pytesseract (OCR)
-- langchain, mistralai (optional LLM)
+- langchain, groq (optional LLM)
 - pyyaml (configuration)
 - python-dotenv (environment)
 
